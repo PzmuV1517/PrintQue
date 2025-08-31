@@ -9,7 +9,7 @@ function App() {
   return (
     <div className="app-container">
       <nav className="nav">
-        <h1>Print Queue</h1>
+  <h1>PrintQue</h1>
         <div className="links">
           <Link to="/">Queue</Link>
           <Link to="/request">New Request</Link>
