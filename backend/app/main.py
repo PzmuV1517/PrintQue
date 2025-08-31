@@ -45,6 +45,13 @@ async def create_job(
     specs: str | None = Form(None),
     file: UploadFile = File(...),
 ):
+    # Allowed 3D file extensions
+    allowed_exts = {'.stl', '.obj', '.step', '.stp', '.ply', '.gltf', '.glb', '.fbx', '.dae', '.3ds', '.amf', '.3mf'}
+    fname = file.filename.lower()
+    ext = '.' + fname.rsplit('.', 1)[-1] if '.' in fname else ''
+    if ext not in allowed_exts:
+        raise HTTPException(status_code=400, detail=f"File type not allowed. Allowed: {', '.join(sorted(allowed_exts))}")
+
     # Collapse internal whitespace and trim
     cleaned_team = re.sub(r"\s+", " ", team).strip()
     cleaned_contact = re.sub(r"\s+", " ", contact).strip()

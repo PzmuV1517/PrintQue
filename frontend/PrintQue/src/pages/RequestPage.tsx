@@ -3,6 +3,13 @@ import { useNavigate } from 'react-router-dom'
 import axios from 'axios'
 import { apiUrl } from '../api'
 
+const ALLOWED_EXTS = ['.stl', '.obj', '.step', '.stp', '.ply', '.gltf', '.glb', '.fbx', '.dae', '.3ds', '.amf', '.3mf'];
+
+function fileExtOK(filename: string) {
+  const ext = filename.toLowerCase().replace(/.*(\.[a-z0-9]+)$/i, '$1');
+  return ALLOWED_EXTS.includes(ext);
+}
+
 export default function RequestPage() {
   const navigate = useNavigate()
   const [team, setTeam] = useState('')
@@ -10,6 +17,7 @@ export default function RequestPage() {
   const [comments, setComments] = useState('')
   const [specs, setSpecs] = useState('')
   const [file, setFile] = useState<File | null>(null)
+  const [fileError, setFileError] = useState<string | null>(null)
     const [status, setStatus] = useState<string | null>(null)
     const [submitting, setSubmitting] = useState(false)
     const minContact = 3
@@ -54,8 +62,19 @@ export default function RequestPage() {
         </label>
         <label>Comments<textarea value={comments} onChange={e=>setComments(e.target.value)} /></label>
         <label>Specs<textarea value={specs} onChange={e=>setSpecs(e.target.value)} /></label>
-  <label>File<input type="file" onChange={e=>setFile(e.target.files?.[0]||null)} required /></label>
-  <button type="submit" disabled={submitting || contact.trim().length < minContact || team.trim().length===0}> {submitting ? 'Submitting...' : 'Submit'} </button>
+        <label>File
+          <input type="file" onChange={e => {
+            const f = e.target.files?.[0] || null;
+            setFile(f);
+            if (f && !fileExtOK(f.name)) {
+              setFileError('File type not allowed. Allowed: ' + ALLOWED_EXTS.join(', '));
+            } else {
+              setFileError(null);
+            }
+          }} required />
+          {file && fileError && <span style={{color:'orange', fontSize:'.7rem'}}>{fileError}</span>}
+        </label>
+        <button type="submit" disabled={submitting || contact.trim().length < minContact || team.trim().length===0 || !!fileError || !file}> {submitting ? 'Submitting...' : 'Submit'} </button>
       </form>
       {status && <p>{status}</p>}
     </div>

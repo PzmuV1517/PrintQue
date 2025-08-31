@@ -17,22 +17,26 @@ export default function QueuePage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  const load = async () => {
-    try {
-      setLoading(true)
-  const res = await axios.get<PrintJob[]>(apiUrl('/queue'))
-      setJobs(res.data)
-    } catch (e: any) {
-      setError(e.message)
-    } finally {
-      setLoading(false)
-    }
-  }
 
-  useEffect(() => { load(); const t = setInterval(load, 5000); return () => clearInterval(t) }, [])
+  // Initial load with loading, then poll in background without flicker
+  useEffect(() => {
+    let mounted = true;
+    setLoading(true);
+    axios.get<PrintJob[]>(apiUrl('/queue'))
+      .then(res => { if(mounted) setJobs(res.data) })
+      .catch(e => { if(mounted) setError(e.message) })
+      .finally(() => { if(mounted) setLoading(false) });
 
-  if (loading) return <p>Loading...</p>
-  if (error) return <p style={{color:'red'}}>Error: {error}</p>
+    const poll = setInterval(() => {
+      axios.get<PrintJob[]>(apiUrl('/queue'))
+        .then(res => { if(mounted) setJobs(res.data) })
+        .catch(() => {}) // ignore errors in background
+    }, 5000);
+    return () => { mounted = false; clearInterval(poll); };
+  }, []);
+
+  if (loading) return <p>Loading...</p>;
+  if (error) return <p style={{color:'red'}}>Error: {error}</p>;
 
   return (
     <div>

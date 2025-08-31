@@ -13,7 +13,6 @@ function App() {
         <div className="links">
           <Link to="/">Queue</Link>
           <Link to="/request">New Request</Link>
-          <Link to="/admin">Admin</Link>
         </div>
       </nav>
       <main>
