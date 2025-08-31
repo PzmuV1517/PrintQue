@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import axios from 'axios'
+import { apiUrl } from '../api'
 
 interface PrintJob {
   id: string
@@ -19,7 +20,7 @@ export default function QueuePage() {
   const load = async () => {
     try {
       setLoading(true)
-  const res = await axios.get<PrintJob[]>(`http://localhost:5420/queue`)
+  const res = await axios.get<PrintJob[]>(apiUrl('/queue'))
       setJobs(res.data)
     } catch (e: any) {
       setError(e.message)

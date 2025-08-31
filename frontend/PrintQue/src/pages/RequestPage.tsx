@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import axios from 'axios'
+import { apiUrl } from '../api'
 
 export default function RequestPage() {
   const navigate = useNavigate()
@@ -24,7 +25,7 @@ export default function RequestPage() {
     form.append('file', file)
       try {
         setSubmitting(true)
-  await axios.post('http://localhost:5420/queue', form, { headers: { 'Content-Type': 'multipart/form-data' } })
+  await axios.post(apiUrl('/queue'), form, { headers: { 'Content-Type': 'multipart/form-data' } })
         setStatus('Submitted! Redirecting...')
         setTimeout(()=> navigate('/'), 600)
       } catch (e: any) {

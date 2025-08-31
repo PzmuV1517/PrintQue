@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import axios from 'axios'
+import { apiUrl } from '../api'
 
 interface PrintJob {
   id: string
@@ -23,14 +24,14 @@ export default function AdminPage() {
 
   const load = async () => {
     try {
-  await axios.get('http://localhost:5420/admin/auth', { headers: authHeader() })
+  await axios.get(apiUrl('/admin/auth'), { headers: authHeader() })
       // on first successful auth, persist credentials
       if(!loggedIn) {
         const cred = btoa(user + ':' + pass)
         localStorage.setItem(storageKey, cred)
         setLoggedIn(true)
       }
-  const res = await axios.get<PrintJob[]>('http://localhost:5420/queue')
+  const res = await axios.get<PrintJob[]>(apiUrl('/queue'))
       setJobs(res.data)
       setError(null)
     } catch (e: any) {
@@ -44,11 +45,11 @@ export default function AdminPage() {
   useEffect(() => {
     const stored = localStorage.getItem(storageKey)
     if(stored) {
-  axios.get('http://localhost:5420/admin/auth', { headers: { Authorization: 'Basic ' + stored } })
+  axios.get(apiUrl('/admin/auth'), { headers: { Authorization: 'Basic ' + stored } })
         .then(async () => {
           setLoggedIn(true)
           setError(null)
-          const res = await axios.get<PrintJob[]>('http://localhost:5420/queue')
+          const res = await axios.get<PrintJob[]>(apiUrl('/queue'))
           setJobs(res.data)
         })
         .catch(() => {
@@ -62,7 +63,7 @@ export default function AdminPage() {
   useEffect(() => {
     if(!loggedIn) return
     const t = setInterval(() => {
-  axios.get<PrintJob[]>('http://localhost:5420/queue').then(r=>setJobs(r.data)).catch(()=>{})
+  axios.get<PrintJob[]>((apiUrl('/queue'))).then(r=>setJobs(r.data)).catch(()=>{})
     }, 5000)
     return () => clearInterval(t)
   }, [loggedIn])
@@ -77,7 +78,7 @@ export default function AdminPage() {
 
   const download = async (id: string, filename: string) => {
     try {
-  const res = await axios.get(`http://localhost:5420/queue/${id}/download`, { headers: authHeader(), responseType: 'blob' })
+  const res = await axios.get(apiUrl(`/queue/${id}/download`), { headers: authHeader(), responseType: 'blob' })
       const url = window.URL.createObjectURL(res.data)
       const a = document.createElement('a')
       a.href = url
@@ -90,7 +91,7 @@ export default function AdminPage() {
   const remove = async (id: string) => {
     if(!confirm('Delete this job?')) return
     try {
-  await axios.delete(`http://localhost:5420/queue/${id}`, { headers: authHeader() })
+  await axios.delete(apiUrl(`/queue/${id}`), { headers: authHeader() })
       setJobs(jobs.filter(j=>j.id!==id))
     } catch (e: any) { alert('Delete failed: ' + e.message) }
   }
